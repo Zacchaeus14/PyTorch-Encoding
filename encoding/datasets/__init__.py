@@ -22,6 +22,7 @@ datasets = {
     'imagenet': ImageNetDataset,
     'minc': MINCDataset,
     'cifar10': CIFAR10,
+    'vizwiz': VIZWIZSegmentation,
 }
 
 acronyms = {
@@ -33,6 +34,7 @@ acronyms = {
     'citys': 'citys',
     'minc': 'minc',
     'cifar10': 'cifar10',
+    'vizwiz', 'vizwiz',
 }
 
 def get_dataset(name, **kwargs):
