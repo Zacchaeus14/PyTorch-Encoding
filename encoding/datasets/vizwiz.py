@@ -56,6 +56,7 @@ class VIZWIZSegmentation(BaseDataset):
             img = self.transform(img)
         if self.target_transform is not None:
             mask = self.target_transform(mask)
+        mask = mask // 255 # 0, 255 to 0, 1
         return img, mask, self.questions[index]
 
     def __len__(self):
@@ -82,12 +83,12 @@ def _get_wizviz_pairs(folder, split='train'):
         mask_folder = os.path.join(folder, 'binary_masks_png/train')
         img_paths, mask_paths = get_path_pairs(img_folder, mask_folder)
         print('len(img_paths):', len(img_paths))
-        assert len(img_paths) == 6494
+        assert len(img_paths) == 6494, len(img_paths)
     elif split == 'val':
         img_folder = os.path.join(folder, 'val')
         mask_folder = os.path.join(folder, 'binary_masks_png/val')
         img_paths, mask_paths = get_path_pairs(img_folder, mask_folder)
-        assert len(img_paths) == 1131
+        assert len(img_paths) == 1131, len(img_paths)
     elif split == 'trainval':
         train_img_folder = os.path.join(folder, 'train')
         train_mask_folder = os.path.join(folder, 'binary_masks_png/train')
@@ -97,12 +98,12 @@ def _get_wizviz_pairs(folder, split='train'):
         val_img_paths, val_mask_paths = get_path_pairs(val_img_folder, val_mask_folder)
         img_paths = train_img_paths + val_img_paths
         mask_paths = train_mask_paths + val_mask_paths
-        assert len(img_paths) == 6494 + 1131
+        assert len(img_paths) == 6494 + 1131, len(img_paths)
     else:
         assert split == 'test', 'split unknown'
         img_folder = os.path.join(folder, 'test')
         img_paths, mask_paths = get_path_pairs(img_folder, None)
-        assert len(img_paths) == 8000
+        assert len(img_paths) == 8000, len(img_paths)
     return img_paths, mask_paths
 
 def _get_name_from_path(path):
