@@ -4,19 +4,15 @@
 # Copyright (c) 2022
 ###########################################################################
 
+import json
 import os
-import sys
-import numpy as np
-import random
-import math
-from PIL import Image, ImageOps, ImageFilter
 from glob import glob
 
 import torch
-import torch.utils.data as data
-import torchvision.transforms as transform
+from PIL import Image
 
-from .base import BaseDataset
+from base import BaseDataset
+
 
 class VIZWIZSegmentation(BaseDataset):
     BASE_DIR = 'VizWizGrounding2022'
@@ -29,8 +25,13 @@ class VIZWIZSegmentation(BaseDataset):
         root = os.path.join(root, self.BASE_DIR)
         assert os.path.exists(root), "Dataset folder not found!"
         self.images, self.masks = _get_wizviz_pairs(root, split)
+        self.questions = []
+        with open(os.path.join(root, f'{split}_grounding.json'), 'r') as f:
+            grounding = json.load(f)
+        for i, img_path in enumerate(self.images):
+            self.questions.append(grounding[_get_name_from_path(img_path)]['question'])
         if split != 'test':
-            assert (len(self.images) == len(self.masks))
+            assert len(set([len(self.images), len(self.masks), len(self.questions)])) == 1
         if len(self.images) == 0:
             raise(RuntimeError("Found 0 images in subfolders of: \
                 " + root + "\n"))
@@ -55,49 +56,7 @@ class VIZWIZSegmentation(BaseDataset):
             img = self.transform(img)
         if self.target_transform is not None:
             mask = self.target_transform(mask)
-        return img, mask
-
-    #def _sync_transform(self, img, mask):
-    #    # random mirror
-    #    if random.random() < 0.5:
-    #        img = img.transpose(Image.FLIP_LEFT_RIGHT)
-    #        mask = mask.transpose(Image.FLIP_LEFT_RIGHT)
-    #    crop_size = self.crop_size
-    #    # random scale (short edge)
-    #    w, h = img.size
-    #    long_size = random.randint(int(self.base_size*0.5), int(self.base_size*2.0))
-    #    if h > w:
-    #        oh = long_size
-    #        ow = int(1.0 * w * long_size / h + 0.5)
-    #        short_size = ow
-    #    else:
-    #        ow = long_size
-    #        oh = int(1.0 * h * long_size / w + 0.5)
-    #        short_size = oh
-    #    img = img.resize((ow, oh), Image.BILINEAR)
-    #    mask = mask.resize((ow, oh), Image.NEAREST)
-    #    # pad crop
-    #    if short_size < crop_size:
-    #        padh = crop_size - oh if oh < crop_size else 0
-    #        padw = crop_size - ow if ow < crop_size else 0
-    #        img = ImageOps.expand(img, border=(0, 0, padw, padh), fill=0)
-    #        mask = ImageOps.expand(mask, border=(0, 0, padw, padh), fill=0)
-    #    # random crop crop_size
-    #    w, h = img.size
-    #    x1 = random.randint(0, w - crop_size)
-    #    y1 = random.randint(0, h - crop_size)
-    #    img = img.crop((x1, y1, x1+crop_size, y1+crop_size))
-    #    mask = mask.crop((x1, y1, x1+crop_size, y1+crop_size))
-    #    # gaussian blur as in PSP
-    #    if random.random() < 0.5:
-    #        img = img.filter(ImageFilter.GaussianBlur(
-    #            radius=random.random()))
-    #    # final transform
-    #    return img, self._mask_transform(mask)
-
-    def _mask_transform(self, mask):
-        target = np.array(mask).astype('int64') - 1
-        return torch.from_numpy(target)
+        return img, mask, self.questions[index]
 
     def __len__(self):
         return len(self.images)
@@ -142,7 +101,7 @@ def _get_wizviz_pairs(folder, split='train'):
     else:
         assert split == 'test', 'split unknown'
         img_folder = os.path.join(folder, 'test')
-        img_paths, mask_paths = get_path_pairs(img_folder, mask_folder)
+        img_paths, mask_paths = get_path_pairs(img_folder, None)
         assert len(img_paths) == 8000
     return img_paths, mask_paths
 
@@ -152,7 +111,7 @@ def _get_name_from_path(path):
 if __name__ == '__main__':
     import torchvision.transforms as transforms
     import matplotlib.pyplot as plt
-    SPLIT = 'val'
+    SPLIT = 'train'
     norm_mean= [0.5, 0.5, 0.5]
     norm_std = [0.5, 0.5, 0.5]
     train_transform = [
@@ -167,9 +126,10 @@ if __name__ == '__main__':
             'base_size': 520,
             'crop_size': 480}
     trainset = VIZWIZSegmentation(**kwargs)
-    img0, msk0 = trainset[0]
+    img0, msk0, q0 = trainset[0]
     plt.imshow(img0.permute(1, 2, 0))
-    print(torch.unique(msk0))
+    print('mask contains', torch.unique(msk0))
+    print('question', q0)
     plt.show()
     plt.imshow(msk0)
     plt.show()
