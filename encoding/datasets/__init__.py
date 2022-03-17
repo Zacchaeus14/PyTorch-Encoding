@@ -1,15 +1,17 @@
 import warnings
+
 from torchvision.datasets import *
-from .base import *
-from .coco import COCOSegmentation
+
 from .ade20k import ADE20KSegmentation
-from .pascal_voc import VOCSegmentation
-from .pascal_aug import VOCAugSegmentation
-from .pcontext import ContextSegmentation
+from .base import *
 from .cityscapes import CitySegmentation
+from .coco import COCOSegmentation
 from .imagenet import ImageNetDataset
 from .minc import MINCDataset
-
+from .pascal_aug import VOCAugSegmentation
+from .pascal_voc import VOCSegmentation
+from .pcontext import ContextSegmentation
+from .vizwiz import VIZWIZSegmentation
 from ..utils import EncodingDeprecationWarning
 
 datasets = {
@@ -34,7 +36,7 @@ acronyms = {
     'citys': 'citys',
     'minc': 'minc',
     'cifar10': 'cifar10',
-    'vizwiz', 'vizwiz',
+    'vizwiz': 'vizwiz',
 }
 
 def get_dataset(name, **kwargs):
