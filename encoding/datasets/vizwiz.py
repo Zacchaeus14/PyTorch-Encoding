@@ -11,7 +11,7 @@ from glob import glob
 import torch
 from PIL import Image
 
-from base import BaseDataset
+from .base import BaseDataset
 
 
 class VIZWIZSegmentation(BaseDataset):
