@@ -56,7 +56,7 @@ class VIZWIZSegmentation(BaseDataset):
             img = self.transform(img)
         if self.target_transform is not None:
             mask = self.target_transform(mask)
-        mask = mask // 255 # 0, 255 to 0, 1
+        mask[mask==255] = 1 # 0, 255 to 0, 1
         return img, mask, self.questions[index]
 
     def __len__(self):
